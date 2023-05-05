@@ -176,38 +176,34 @@ for obj in objs:
 # A - selected (not)daemon pair
 # B - storyteller says Yes/No
 class FortuneTeller:
-    def PA(self, answer):
+    def PA(self, hypothesis):
         # If there are no Fake Daemon and not poisoned
-        if answer:
+        if hypothesis:
             # Probability to select real daemon using 2 cards
             return 2/(N-1)
         else:
             # Probability not to find real daemon using 2 cards
             return 1-2/(N-1)
-    def PBA(self, answer):
+    def PBA(self, answer, hypothesis):
         # Probability that storyteller says Yes/No when receives pair to check
         # Divide good variants from bad variants
         poisoned = isPoisoned()
         daemon = N-2
         fakeDaemon = N-3
-        if answer:
-            # Count of pairs with real daemon without fortune-teller / Count of all pairs that gives Yes
-
-            # Answer is Yes if fortune-teller is not poisoned and selected daemon or fake daemon and no recluse is in the game
+        if hypothesis:
             p = (1-poisoned) * (1-outcastProbability) * daemon/(daemon+fakeDaemon)
-            # Or recluse in the game. Recluse can be fake daemon also. So recluse=fakeDaemon
             p += (1-poisoned) * outcastProbability * daemon/(daemon+2*fakeDaemon)
-            # No variants where poisoned fortune-teller receives true info about the daemon
         else:
-            # Count of pairs without real daemon / Count of all pairs that gives No
-
-            # Answer is No when fortune-teller is poisoned and selects pair with the daemon between all pairs with answer No
-            p = poisoned * (1-outcastProbability) * daemon/(daemon + (N-3)*(N-4)/2)
-            p += poisoned * outcastProbability * daemon/(daemon + (N-4)*(N-5)/2)
-            # Not poisoned and daemon presents but answer is still No - impossible
+            p = (1-poisoned) * (1-outcastProbability) * fakeDaemon/(daemon+fakeDaemon)
+            p += (1-poisoned) * outcastProbability * 2*fakeDaemon/(daemon+2*fakeDaemon)
+            p += poisoned * (1-(N-2)/(N-1)*(N-3)/(N-2))
+        if not answer:
+            p = 1-p
         return p
-    def Bayes(self, answer):
-        return self.PA(answer) * self.PBA(answer)/(self.PA(False)*self.PBA(False)+self.PA(True)*self.PBA(True))
+    def PB(self, answer):
+        return self.PA(False)*self.PBA(answer, False)+self.PA(True)*self.PBA(answer, True)
+    def Bayes(self, answer, hypothesis):
+        return self.PA(hypothesis) * self.PBA(answer, hypothesis)/self.PB(answer)
 
 ft = FortuneTeller()
 print("\nProbability that FortuneTeller found daemon if storyteller said:")
@@ -219,7 +215,20 @@ p1 = ft.PA(True)
 print(f"True  - {round(p1*100)}%")
 
 print("Aposterior:")
-p0 = ft.Bayes(False)
-print(f"False - {round(p0*100)}%")
-p1 = ft.Bayes(True)
-print(f"True  - {round(p1*100)}%")
+
+pb = ft.PB(False)
+print(f"PB False  - {round(pb*100)}%")
+pb = ft.PB(True)
+print(f"PB True  - {round(pb*100)}%")
+
+print("If storyteller says NO:")
+p0 = ft.Bayes(False, False)
+print(f"No daemon - {round(p0*100)}%")
+p1 = ft.Bayes(False, True)
+print(f"Daemon - {round(p1*100)}%")
+
+print("If storyteller says YES:")
+p2 = ft.Bayes(True, False)
+print(f"No daemon - {round(p2*100)}%")
+p3 = ft.Bayes(True, True)
+print(f"Daemon - {round(p3*100)}%")
