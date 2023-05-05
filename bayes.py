@@ -63,6 +63,9 @@ def isPoisoned():
     poisoned *= henchmanProbability 
     # Poisoner cannot poison drunker twice
     p = poisoned + drunkerProbability - poisoned*drunkerProbability
+    # Storyteller can choose should he execute poisoning or not
+    # let it be 0.5 probability
+    p = 0.5 * p
     return p
 
 #print(f"Is specific person poisoned: {round(isPoisoned() * 100)}%\n")
@@ -188,15 +191,18 @@ class FortuneTeller:
         # Probability that storyteller says Yes/No when receives pair to check
         # Divide good variants from bad variants
         poisoned = isPoisoned()
+        # count of pairs with daemon without fortune-teller
         daemon = N-2
+        # count of pairs with fake daemon without true daemon and fortune-teller
         fakeDaemon = N-3
         if hypothesis:
+            # if pair contains daemon, then storyteller says Yes
             p = (1-poisoned) * (1-outcastProbability) * daemon/(daemon+fakeDaemon)
             p += (1-poisoned) * outcastProbability * daemon/(daemon+2*fakeDaemon)
         else:
+            # if pair does not contain daemon, then storyteller says Yes
             p = (1-poisoned) * (1-outcastProbability) * fakeDaemon/(daemon+fakeDaemon)
             p += (1-poisoned) * outcastProbability * 2*fakeDaemon/(daemon+2*fakeDaemon)
-            p += poisoned
         if not answer:
             p = 1-p
         return p
