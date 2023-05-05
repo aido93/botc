@@ -196,7 +196,7 @@ class FortuneTeller:
         else:
             p = (1-poisoned) * (1-outcastProbability) * fakeDaemon/(daemon+fakeDaemon)
             p += (1-poisoned) * outcastProbability * 2*fakeDaemon/(daemon+2*fakeDaemon)
-            p += poisoned * (1-(N-2)/(N-1)*(N-3)/(N-2))
+            p += poisoned
         if not answer:
             p = 1-p
         return p
