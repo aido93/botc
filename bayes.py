@@ -5,6 +5,9 @@ import math
 
 N=int(sys.argv[1])
 baronPresents=(sys.argv[2] == 'true')
+storyTellerPoisonProbability = 1
+if len(sys.argv) == 4:
+    storyTellerPoisonProbability = float(sys.argv[3])
 
 if N<7:
     print("script is not ready yet")
@@ -63,9 +66,7 @@ def isPoisoned():
     poisoned *= henchmanProbability 
     # Poisoner cannot poison drunker twice
     p = poisoned + drunkerProbability - poisoned*drunkerProbability
-    # Storyteller can choose should he execute poisoning or not
-    # let it be 0.5 probability
-    p = 0.5 * p
+    p *= storyTellerPoisonProbability
     return p
 
 #print(f"Is specific person poisoned: {round(isPoisoned() * 100)}%\n")
@@ -200,9 +201,9 @@ class FortuneTeller:
             p = (1-poisoned) * (1-outcastProbability) * daemon/(daemon+fakeDaemon)
             p += (1-poisoned) * outcastProbability * daemon/(daemon+2*fakeDaemon)
         else:
-            # if pair does not contain daemon, then storyteller says Yes
-            p = (1-poisoned) * (1-outcastProbability) * fakeDaemon/(daemon+fakeDaemon)
-            p += (1-poisoned) * outcastProbability * 2*fakeDaemon/(daemon+2*fakeDaemon)
+            # if pair does not contain daemon, then storyteller says No
+            p = (1-poisoned) * (1-outcastProbability) * (N-3)/(N-1) * (N-4)/(N-2)
+            p += (1-poisoned) * outcastProbability * (N-4)/(N-1) * (N-5)/(N-2)
         if not answer:
             p = 1-p
         return p
@@ -223,18 +224,24 @@ print(f"True  - {round(p1*100)}%")
 print("Aposterior:")
 
 pb = ft.PB(False)
-print(f"PB False  - {round(pb*100)}%")
+print(f"PB No  - {round(pb*100)}%")
 pb = ft.PB(True)
-print(f"PB True  - {round(pb*100)}%")
+print(f"PB Yes - {round(pb*100)}%\n")
 
 print("If storyteller says NO:")
 p0 = ft.Bayes(False, False)
 print(f"No daemon - {round(p0*100)}%")
 p1 = ft.Bayes(False, True)
-print(f"Daemon - {round(p1*100)}%")
+print(f"Daemon - {round(p1*100)}%\n")
 
 print("If storyteller says YES:")
 p2 = ft.Bayes(True, False)
 print(f"No daemon - {round(p2*100)}%")
 p3 = ft.Bayes(True, True)
-print(f"Daemon - {round(p3*100)}%")
+print(f"Daemon - {round(p3*100)}%\n")
+
+print("PBA")
+print("Rows - answers, columns - hypothesis")
+print("\tYes\tNo")
+print(f"Yes:\t{round(100*ft.PBA(True, True))}%\t{round(100*ft.PBA(True, False))}%")
+print(f"No:\t{round(100*ft.PBA(False, True))}%\t{round(100*ft.PBA(False, False))}%")
